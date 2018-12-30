@@ -19,12 +19,8 @@ Configuration is stored in `config.txt` file.
 It has following format: filename_without_extension|number_of_prints|text_separated_by_semicolon
 
 For example:
-blue|2|Blue;sky;1.0
+blue|2|Blue;1.0
 
-This line means that output image will contain 2 prints of `images/blue.png` with 3 lines of text.
+This line means that output image will contain 2 prints of `images/blue.png` with 2 lines of text.
 
-Default dpi for output image is set to 300. You can change dpi to 150 by opening `main.py` file
-and changing line:
-DPI = 300
-to line:
-DPI = 150
+dpi for output image is set to 300.
