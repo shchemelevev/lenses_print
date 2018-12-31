@@ -1,6 +1,7 @@
 [FONT]
 filename=impact.ttf
-size=58
+text_max_size=50
+power_size=53
 color=[0,0,0]
 outline_size=2
 outline_color=[255,255,255]

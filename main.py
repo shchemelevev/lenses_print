@@ -1,4 +1,5 @@
 import json
+import math
 import ConfigParser
 import codecs
 from PIL import Image, ImageDraw, ImageFont
@@ -20,48 +21,68 @@ NUMBER_IN_ROW = (2480 - LEFT_PADDING - RIGHT_PADDING) / (PLACEHOLDER_PADDING + P
 TEXT_PADDING = 6
 
 
-def draw_outlined_text(draw, x, y, line, font):
+def draw_outlined_text(draw, x, y, line, font, config):
+    outline_size = config.getint('FONT', 'outline_size')
+    outline_color = tuple(json.loads(config.get('FONT', 'outline_color')))
+    color = tuple(json.loads(config.get('FONT', 'color')))
     # move right
-    draw.text((x - font.outline_size, y), line, font=font, fill=font.outline_color)
+    draw.text((x - outline_size, y), line, font=font, fill=outline_color)
     # move left
-    draw.text((x + font.outline_size, y), line, font=font, fill=font.outline_color)
+    draw.text((x + outline_size, y), line, font=font, fill=outline_color)
     # move up
-    draw.text((x, y + font.outline_size), line, font=font, fill=font.outline_color)
+    draw.text((x, y + outline_size), line, font=font, fill=outline_color)
     # move down
-    draw.text((x, y - font.outline_size), line, font=font, fill=font.outline_color)
+    draw.text((x, y - outline_size), line, font=font, fill=outline_color)
     # diagnal left up
-    draw.text((x - font.outline_size, y + font.outline_size), line, font=font, fill=font.outline_color)
+    draw.text((x - outline_size, y + outline_size), line, font=font, fill=outline_color)
     # diagnal right up
-    draw.text((x + font.outline_size, y + font.outline_size), line, font=font, fill=font.outline_color)
+    draw.text((x + outline_size, y + outline_size), line, font=font, fill=outline_color)
     # diagnal left down
-    draw.text((x - font.outline_size, y - font.outline_size), line, font=font, fill=font.outline_color)
+    draw.text((x - outline_size, y - outline_size), line, font=font, fill=outline_color)
     # diagnal right down
-    draw.text((x + font.outline_size, y - font.outline_size), line, font=font, fill=font.outline_color)
+    draw.text((x + outline_size, y - outline_size), line, font=font, fill=outline_color)
     # main text
-    draw.text((x, y), line, font=font, fill=font.color)
+    draw.text((x, y), line, font=font, fill=color)
 
 
-def put_text_on_lense_image(im_obj, lines_array, font):
+def get_font(text, config):
+    im_obj = Image.new('RGBA', (222, 222), (255, 255, 255))
     imgDrawer = ImageDraw.Draw(im_obj)
-    line_w, line_h = imgDrawer.textsize('W', font=font)
-    line_count = len(lines_array)
-    if line_count == 3:
-        t_padding = TEXT_PADDING/3
-        initial_v_offset = 10
+    max_radius = PLACEHOLDER_DIMENSIONS / 2 - 10
+    current_font_size = config.getint('FONT', 'text_max_size')
+    font = ImageFont.truetype(config.get('FONT', 'filename'), current_font_size)
+
+    line_w, line_h = imgDrawer.textsize(text, font)
+    current_radius = int(math.sqrt((line_w/2.0) * (line_w/2.0) + (line_h) * (line_h)))
+    counter = 1
+    while current_radius > max_radius:
+        counter +=1
+        current_font_size -= 1
+        font = ImageFont.truetype(config.get('FONT', 'filename'), current_font_size)
+        line_w, line_h = imgDrawer.textsize(text, font)
+        current_radius = int(math.sqrt((line_w/2.0) * (line_w/2.0) + (line_h) * (line_h)))
+    return font
+
+
+def put_text_on_lense_image(im_obj, lines_array, config):
+    imgDrawer = ImageDraw.Draw(im_obj)
+
+    first_line = lines_array[0]
+    font = get_font(first_line, config)
+    line_w, line_h = imgDrawer.textsize(first_line, font=font)
+    v_offset = PLACEHOLDER_DIMENSIONS / 2 - line_h
+    h_offset = PLACEHOLDER_DIMENSIONS/ 2 - line_w / 2
+    draw_outlined_text(imgDrawer, h_offset, v_offset, first_line.strip(), font, config)
+
+    second_line = lines_array[1].strip()
+    font = ImageFont.truetype(config.get('FONT', 'filename'), config.getint("FONT", 'power_size'))
+    if '-' in second_line:
+        w, h = imgDrawer.textsize(second_line+'-', font=font)
     else:
-        t_padding = TEXT_PADDING
-        initial_v_offset = (PLACEHOLDER_DIMENSIONS - line_count * (line_w + t_padding) - t_padding) / 2
-
-    for index, line in enumerate(lines_array):
-        stripped_line = line.strip()
-        if '-' in line:
-            w, h = imgDrawer.textsize(stripped_line+'-', font=font)
-        else:
-            w, h = imgDrawer.textsize(stripped_line, font=font)
-        h_offset = (PLACEHOLDER_DIMENSIONS - w) / 2
-        v_offset = initial_v_offset + index * (h + t_padding)
-
-        draw_outlined_text(imgDrawer, h_offset, v_offset, stripped_line, font)
+        w, h = imgDrawer.textsize(second_line, font=font)
+    v_offset = PLACEHOLDER_DIMENSIONS / 2 + 5
+    h_offset = int(PLACEHOLDER_DIMENSIONS / 2.0 - w / 2.0)
+    draw_outlined_text(imgDrawer, h_offset, v_offset, second_line, font, config)
 
 
 def load_image(filename_without_ext):
@@ -117,10 +138,7 @@ if __name__ == '__main__':
     config = ConfigParser.RawConfigParser()
     config.read('config.txt')
 
-    font = ImageFont.truetype(config.get('FONT', 'filename'), config.getint('FONT','size'))
-    font.outline_size = config.getint('FONT', 'outline_size')
-    font.outline_color = tuple(json.loads(config.get('FONT', 'outline_color')))
-    font.color = tuple(json.loads(config.get('FONT', 'color')))
+
 
     main_image = Image.new('RGB', PAGE_SIZE, BACKGROUND_COLOR)
 
@@ -134,7 +152,7 @@ if __name__ == '__main__':
                 except:
                     resized_image = Image.new("RGBA", PLACEHOLDER_SIZE, color='red')
                     lines_array = ['image', 'not', 'found']
-                put_text_on_lense_image(resized_image, lines_array, font)
+                put_text_on_lense_image(resized_image, lines_array, config)
                 # main_image.alpha_composite(resized_image, get_image_offset(counter))
                 main_image.paste(resized_image, get_image_offset(counter), resized_image)
                 counter += 1
