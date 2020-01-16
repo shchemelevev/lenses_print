@@ -16,7 +16,8 @@ PLACEHOLDER_DIMENSIONS = 222
 PLACEHOLDER_PADDING = 13
 PLACEHOLDER_SIZE = (PLACEHOLDER_DIMENSIONS, PLACEHOLDER_DIMENSIONS)
 
-NUMBER_IN_ROW = (2480 - LEFT_PADDING - RIGHT_PADDING) / (PLACEHOLDER_PADDING + PLACEHOLDER_DIMENSIONS)
+NUMBER_IN_ROW = 10  #(2480 - LEFT_PADDING - RIGHT_PADDING - 100) / (PLACEHOLDER_PADDING +
+                    #                                            PLACEHOLDER_DIMENSIONS)
 
 TEXT_PADDING = 6
 
@@ -81,7 +82,7 @@ def put_text_on_lense_image(im_obj, lines_array, config):
     else:
         w, h = imgDrawer.textsize(second_line, font=font)
     v_offset = PLACEHOLDER_DIMENSIONS / 2 + 5
-    h_offset = int(PLACEHOLDER_DIMENSIONS / 2.0 - w / 2.0)
+    h_offset = (PLACEHOLDER_DIMENSIONS / 2.0 - w / 2.0)
     draw_outlined_text(imgDrawer, h_offset, v_offset, second_line, font, config)
 
 
@@ -96,7 +97,8 @@ def load_image(filename_without_ext):
 
 
 def get_image_offset(image_number):
-    v_offset = image_number / NUMBER_IN_ROW * (PLACEHOLDER_DIMENSIONS + PLACEHOLDER_PADDING) + TOP_PADDING
+    v_offset = int(image_number / NUMBER_IN_ROW) * (PLACEHOLDER_DIMENSIONS + PLACEHOLDER_PADDING)\
+               + TOP_PADDING
     h_offset = image_number % NUMBER_IN_ROW * (PLACEHOLDER_DIMENSIONS + PLACEHOLDER_PADDING) + LEFT_PADDING
     return (int(h_offset), int(v_offset))
 
