@@ -1,7 +1,7 @@
 INSTALLATION
 ============
 1. Download and install python interpreter using following url:
-https://www.python.org/ftp/python/2.7/python-2.7.msi
+https://www.python.org/ftp/python/3.8.1/python-3.8.1-amd64.exe
 
 2. Install python requirements by running `install_deps.bat` file.
 To run this file simple double-click on it in windows explorer.
