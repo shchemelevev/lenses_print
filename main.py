@@ -1,6 +1,6 @@
 import json
 import math
-import ConfigParser
+import configparser
 import codecs
 from PIL import Image, ImageDraw, ImageFont
 
@@ -98,7 +98,7 @@ def load_image(filename_without_ext):
 def get_image_offset(image_number):
     v_offset = image_number / NUMBER_IN_ROW * (PLACEHOLDER_DIMENSIONS + PLACEHOLDER_PADDING) + TOP_PADDING
     h_offset = image_number % NUMBER_IN_ROW * (PLACEHOLDER_DIMENSIONS + PLACEHOLDER_PADDING) + LEFT_PADDING
-    return (h_offset, v_offset)
+    return (int(h_offset), int(v_offset))
 
 
 def parse_input_attrs(line):
@@ -135,7 +135,7 @@ def get_print_config(config_filename):
 if __name__ == '__main__':
     counter = 0
     lenses_list_for_print = codecs.open('lenses_list_for_print.txt', 'r', 'utf-8')
-    config = ConfigParser.RawConfigParser()
+    config = configparser.RawConfigParser()
     config.read('config.txt')
 
 
